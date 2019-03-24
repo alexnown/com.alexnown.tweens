@@ -1,0 +1,16 @@
+{
+    "name": "EcsTweens",
+    "references": [
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:b92ff8b696eb46a4b90382b319e963fe"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
