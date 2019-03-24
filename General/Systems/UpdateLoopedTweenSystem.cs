@@ -1,6 +1,8 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace EcsTweens
@@ -8,82 +10,73 @@ namespace EcsTweens
     [UpdateInGroup(typeof(TweenSystemGroup))]
     public class UpdateLoopedTweenSystem : JobComponentSystem
     {
+        [BurstCompile]
         struct LoopedTweenJob : IJobChunk
         {
             public float Dt;
             [ReadOnly]
-            public EntityCommandBuffer Cb;
+            public EntityCommandBuffer.Concurrent Cb;
             [ReadOnly]
             public ArchetypeChunkEntityType EntityType;
+            //[ReadOnly]
+            //public ArchetypeChunkComponentType<DestroyOnComplite> DestroyType;
             [ReadOnly]
-            public ArchetypeChunkComponentType<DestroyOnComplite> DestroyType;
-            [ReadOnly]
-            public ArchetypeChunkComponentType<TweenBounds> BoundsType;
-            public ArchetypeChunkComponentType<FloatContainer> FloatType;
-            public ArchetypeChunkComponentType<TweenSpeed> SpeedType;
+            public ArchetypeChunkComponentType<TweenLoopTime> TimeType;
             public ArchetypeChunkComponentType<TweenLoops> LoopsType;
+            public ArchetypeChunkComponentType<TweenProgress> ProgressType;
+            public ArchetypeChunkComponentType<TweenYoyoDirection> YoyoDirectionType;
 
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
             {
                 var entities = chunk.GetNativeArray(EntityType);
-                var valuesArray = chunk.GetNativeArray(FloatType);
-                var speeds = chunk.GetNativeArray(SpeedType);
+                var valuesArray = chunk.GetNativeArray(ProgressType);
+                var times = chunk.GetNativeArray(TimeType);
                 var remainingLoops = chunk.GetNativeArray(LoopsType);
-                var boundsArray = chunk.GetNativeArray(BoundsType);
+                var yoyoDirections = chunk.GetNativeArray(YoyoDirectionType);
 
                 for (int i = 0; i < entities.Length; i++)
                 {
-                    float tweenSpeed = speeds[i].Value;
-                    float delta = tweenSpeed * Dt;
-                    var bounds = boundsArray[i];
-                    float newAlphaValue = valuesArray[i].Value + delta;
-                    bool reachBound = ReachBound(bounds.Min, bounds.Max, delta >= 0, ref newAlphaValue);
+                    float delta = Dt / math.max(0.001f, times[i].Value);
+                    float newProgress = valuesArray[i].Value + delta;
 
-                    if (reachBound)
+                    if (newProgress > 1)
                     {
-                        uint loops = remainingLoops.IsCreated ? remainingLoops[i].Value : 0;
-                        if (loops > 1)
+                        bool isTweenEnded = false;
+                        if (remainingLoops.IsCreated)
                         {
-                            remainingLoops[i] = new TweenLoops { Value = loops - 1 };
-                            speeds[i] = new TweenSpeed { Value = -tweenSpeed };
+                            uint loops = remainingLoops[i].Value;
+                            if (loops > 1) remainingLoops[i] = new TweenLoops {Value = loops - 1};
+                            else isTweenEnded = true;
+                        }
+                        if (isTweenEnded)
+                        {
+                            newProgress = 1;
+                            var entitie = entities[i];
+                            Cb.DestroyEntity(chunkIndex, entitie);
+                            //if (chunk.HasChunkComponent(DestroyType))
+                            //{
+                            //    Cb.DestroyEntity(chunkIndex, entitie);
+                            //}
+                            //else
+                            //{
+                            //    Cb.RemoveComponent<TweenLoopTime>(chunkIndex, entitie);
+                            //    Cb.RemoveComponent<TweenBounds>(chunkIndex, entitie);
+                            //    if (remainingLoops.IsCreated) Cb.RemoveComponent<TweenLoops>(chunkIndex, entitie);
+                            //}
                         }
                         else
                         {
-                            newAlphaValue = delta > 0 ? bounds.Max : bounds.Min;
-                            var entitie = entities[i];
-                            if (chunk.HasChunkComponent(DestroyType))
+                            newProgress = math.frac(newProgress);
+                            if (yoyoDirections.IsCreated)
                             {
-                                Cb.DestroyEntity(entitie);
-                            }
-                            else
-                            {
-                                Cb.RemoveComponent<TweenSpeed>(entitie);
-                                Cb.RemoveComponent<TweenBounds>(entitie);
-                                if (remainingLoops.IsCreated) Cb.RemoveComponent<TweenLoops>(entitie);
+                                bool prevYoyoDir = yoyoDirections[i].IsForward;
+                                yoyoDirections[i] = new TweenYoyoDirection { IsForward = !prevYoyoDir };
                             }
                         }
                     }
-                    valuesArray[i] = new FloatContainer { Value = newAlphaValue };
+                    valuesArray[i] = new TweenProgress { Value = newProgress };
                 }
-            }
-
-            private bool ReachBound(float min, float max, bool moveForward, ref float value)
-            {
-                if (moveForward)
-                {
-                    if (value > max)
-                    {
-                        value = 2 * max - value;
-                        return true;
-                    }
-                }
-                else if (value < min)
-                {
-                    value = 2 * min - value;
-                    return true;
-                }
-                return false;
             }
         }
 
@@ -94,8 +87,8 @@ namespace EcsTweens
         {
             _endBarrier = World.GetOrCreateManager<EndSimulationEntityCommandBufferSystem>();
             _tweens = GetComponentGroup(
-                ComponentType.ReadWrite<FloatContainer>(),
-                ComponentType.ReadOnly<TweenSpeed>(),
+                ComponentType.ReadWrite<TweenProgress>(),
+                ComponentType.ReadOnly<TweenLoopTime>(),
                 ComponentType.ReadOnly<TweenBounds>());
         }
 
@@ -105,14 +98,14 @@ namespace EcsTweens
             if (dt <= 0) return inputDeps;
             var job = new LoopedTweenJob
             {
-                Cb = _endBarrier.CreateCommandBuffer(),
+                Cb = _endBarrier.CreateCommandBuffer().ToConcurrent(),
                 Dt = dt,
                 EntityType = GetArchetypeChunkEntityType(),
-                SpeedType = GetArchetypeChunkComponentType<TweenSpeed>(),
-                DestroyType = GetArchetypeChunkComponentType<DestroyOnComplite>(true),
-                BoundsType = GetArchetypeChunkComponentType<TweenBounds>(true),
+                //DestroyType = GetArchetypeChunkComponentType<DestroyOnComplite>(true),
+                TimeType = GetArchetypeChunkComponentType<TweenLoopTime>(true),
                 LoopsType = GetArchetypeChunkComponentType<TweenLoops>(),
-                FloatType = GetArchetypeChunkComponentType<FloatContainer>()
+                ProgressType = GetArchetypeChunkComponentType<TweenProgress>(),
+                YoyoDirectionType = GetArchetypeChunkComponentType<TweenYoyoDirection>()
             }.Schedule(_tweens, inputDeps);
             _endBarrier.AddJobHandleForProducer(job);
             return job;

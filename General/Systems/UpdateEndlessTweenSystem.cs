@@ -10,7 +10,7 @@ namespace EcsTweens
     public class UpdateEndlessTweenSystem : JobComponentSystem
     {
         [BurstCompile]
-        [ExcludeComponent(typeof(TweenBounds), typeof(TweenFloatTarget))]
+        [ExcludeComponent(typeof(TweenFloatTarget))]
         struct EndlessTweenJob : IJobProcessComponentData<FloatContainer, TweenSpeed>
         {
             public float Dt;

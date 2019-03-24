@@ -1,6 +1,8 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace EcsTweens
@@ -8,59 +10,75 @@ namespace EcsTweens
     [UpdateInGroup(typeof(TweenSystemGroup))]
     public class TweenTowardTargetSystem : JobComponentSystem
     {
-        struct MoveTowardTweenJob : IJobChunk
+        [BurstCompile]
+        struct MoveTowardTargetValueJob : IJobProcessComponentData<FloatContainer, TweenComplitedState, TweenSpeed, TweenFloatTarget>
         {
             public float Dt;
+
+            public void Execute(ref FloatContainer result, ref TweenComplitedState complited,
+                [ReadOnly]ref TweenSpeed speed, [ReadOnly] ref TweenFloatTarget targetValue)
+            {
+                var delta = speed.Value * Dt;
+                var currValue = result.Value;
+                float target = targetValue.Value;
+                if (currValue < target)
+                {
+                    currValue += delta;
+                    if (currValue > target)
+                    {
+                        currValue = target;
+                        complited.IsComplited = true;
+                    }
+                }
+                else if (currValue > target)
+                {
+                    currValue -= delta;
+                    if (currValue < target)
+                    {
+                        currValue = target;
+                        complited.IsComplited = true;
+                    }
+                }
+                result.Value = currValue;
+            }
+        }
+
+        struct RemoveTweenComponentsIfEnded : IJob
+        {
+            [DeallocateOnJobCompletion]
+            public NativeArray<ArchetypeChunk> Chunks;
             [ReadOnly]
-            public EntityCommandBuffer.Concurrent Cb;
+            public EntityCommandBuffer Cb;
             [ReadOnly]
             public ArchetypeChunkEntityType EntitieType;
             [ReadOnly]
             public ArchetypeChunkComponentType<DestroyOnComplite> DestroyType;
             [ReadOnly]
-            public ArchetypeChunkComponentType<TweenSpeed> SpeedType;
-            [ReadOnly]
-            public ArchetypeChunkComponentType<TweenFloatTarget> TargetType;
-            public ArchetypeChunkComponentType<FloatContainer> FloatType;
+            public ArchetypeChunkComponentType<TweenComplitedState> ComplitedType;
 
-            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
+            public void Execute()
             {
-                var entities = chunk.GetNativeArray(EntitieType);
-                var values = chunk.GetNativeArray(FloatType);
-                var targets = chunk.GetNativeArray(TargetType);
-                var speeds = chunk.GetNativeArray(SpeedType);
-                bool hasDestroy = chunk.HasChunkComponent(DestroyType);
-
-                for (int i = 0; i < entities.Length; i++)
+                for (int chunkIndex = 0; chunkIndex < Chunks.Length; chunkIndex++)
                 {
-                    float currValue = values[i].Value;
-                    float target = targets[i].Value;
-                    var delta = speeds[i].Value * Dt;
-                    bool complited;
-                    if (currValue < target)
+                    ArchetypeChunk chunk = Chunks[chunkIndex];
+                    var entities = chunk.GetNativeArray(EntitieType);
+                    var states = chunk.GetNativeArray(ComplitedType);
+                    bool hasDestroy = chunk.Has(DestroyType);
+                    for (int i = 0; i < entities.Length; i++)
                     {
-                        currValue += delta;
-                        complited = currValue >= target;
-                    }
-                    else if (currValue > target)
-                    {
-                        currValue -= delta;
-                        complited = currValue <= target;
-                    }
-                    else complited = true;
-
-                    values[i] = new FloatContainer { Value = currValue };
-                    if (complited)
-                    {
-                        var entitie = entities[i];
-                        if (hasDestroy)
+                        if (states[i].IsComplited)
                         {
-                            Cb.DestroyEntity(chunkIndex, entitie);
-                        }
-                        else
-                        {
-                            Cb.RemoveComponent<TweenSpeed>(chunkIndex, entitie);
-                            Cb.RemoveComponent<TweenFloatTarget>(chunkIndex, entitie);
+                            var entitie = entities[i];
+                            if (hasDestroy)
+                            {
+                                Cb.DestroyEntity(entitie);
+                            }
+                            else
+                            {
+                                Cb.RemoveComponent<TweenSpeed>(entitie);
+                                Cb.RemoveComponent<TweenComplitedState>(entitie);
+                                Cb.RemoveComponent<TweenFloatTarget>(entitie);
+                            }
                         }
                     }
                 }
@@ -74,27 +92,30 @@ namespace EcsTweens
         {
             _endBarrier = World.GetOrCreateManager<EndSimulationEntityCommandBufferSystem>();
             _tweens = GetComponentGroup(
-                ComponentType.ReadOnly<TweenSpeed>(), 
+                ComponentType.ReadOnly<TweenComplitedState>(),
+                ComponentType.ReadOnly<TweenSpeed>(),
                 ComponentType.ReadOnly<TweenFloatTarget>(),
-                ComponentType.ReadWrite<FloatContainer>());
+                ComponentType.ReadOnly<FloatContainer>());
+            RequireForUpdate(_tweens);
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             float dt = Time.deltaTime;
             if (dt <= 0) return inputDeps;
-            var job = new MoveTowardTweenJob
+            var updateValueJob = new MoveTowardTargetValueJob { Dt = dt }.Schedule(this, inputDeps);
+            return updateValueJob;
+            /*
+            var checkTweenEndedJob = new RemoveTweenComponentsIfEnded
             {
-                Cb = _endBarrier.CreateCommandBuffer().ToConcurrent(),
-                Dt = dt,
+                Chunks = _tweens.CreateArchetypeChunkArray(Allocator.TempJob),
+                Cb = _endBarrier.CreateCommandBuffer(),
                 EntitieType = GetArchetypeChunkEntityType(),
-                SpeedType = GetArchetypeChunkComponentType<TweenSpeed>(true),
-                TargetType = GetArchetypeChunkComponentType<TweenFloatTarget>(true),
                 DestroyType = GetArchetypeChunkComponentType<DestroyOnComplite>(true),
-                FloatType = GetArchetypeChunkComponentType<FloatContainer>()
-            }.Schedule(_tweens, inputDeps);
-            _endBarrier.AddJobHandleForProducer(job);
-            return job;
+                ComplitedType = GetArchetypeChunkComponentType<TweenComplitedState>(true)
+            }.Schedule(updateValueJob);
+            _endBarrier.AddJobHandleForProducer(checkTweenEndedJob); 
+            return checkTweenEndedJob;*/
         }
     }
 }
