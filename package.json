@@ -1,7 +1,7 @@
 {
   "name": "com.alexnown.tweens",
   "description": "Implementation tweening and shaking using unity DOTS.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "unity": "2019.1",
   "displayName": "Alexnown.Tweens",
   "dependencies": {
