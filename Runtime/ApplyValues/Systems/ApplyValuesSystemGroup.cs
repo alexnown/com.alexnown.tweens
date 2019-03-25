@@ -3,5 +3,5 @@
 namespace EcsTweens
 {
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
-    public class ApplyValuesSystemGroup : ComponentSystemGroup { }
+    public class ApplyValuesSystemGroup : ComponentSystemGroup {}
 }

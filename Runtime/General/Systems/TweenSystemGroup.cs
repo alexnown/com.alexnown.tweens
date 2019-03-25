@@ -2,6 +2,5 @@
 
 namespace EcsTweens
 {
-    [UpdateBefore(typeof(ApplyValuesSystemGroup))]
     public class TweenSystemGroup : ComponentSystemGroup { }
 }

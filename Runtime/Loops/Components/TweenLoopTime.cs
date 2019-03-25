@@ -2,7 +2,7 @@
 
 namespace EcsTweens
 {
-    public struct TweenFloatTarget : IComponentData
+    public struct TweenLoopTime : IComponentData
     {
         public float Value;
     }

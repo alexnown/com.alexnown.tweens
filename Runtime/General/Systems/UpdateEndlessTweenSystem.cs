@@ -10,7 +10,7 @@ namespace EcsTweens
     public class UpdateEndlessTweenSystem : JobComponentSystem
     {
         [BurstCompile]
-        [ExcludeComponent(typeof(TweenBounds), typeof(TweenFloatTarget))]
+        [ExcludeComponent(typeof(TweenFloatTarget))]
         struct EndlessTweenJob : IJobProcessComponentData<FloatContainer, TweenSpeed>
         {
             public float Dt;
@@ -22,9 +22,7 @@ namespace EcsTweens
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            float dt = Time.deltaTime;
-            if (dt <= 0) return inputDeps;
-            return new EndlessTweenJob { Dt = dt }.Schedule(this, inputDeps);
+            return new EndlessTweenJob { Dt = Time.deltaTime }.Schedule(this, inputDeps);
         }
     }
 }
