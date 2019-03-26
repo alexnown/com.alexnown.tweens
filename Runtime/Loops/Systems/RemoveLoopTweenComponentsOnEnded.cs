@@ -26,6 +26,8 @@ namespace EcsTweens
             public ArchetypeChunkComponentType<TweenYoyoDirection> DirectionType;
             [ReadOnly]
             public ArchetypeChunkComponentType<TweenLoops> LoopsType;
+            [ReadOnly]
+            public ArchetypeChunkBufferType<TweenTargetElement> ElementsBufferType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
             {
@@ -35,6 +37,7 @@ namespace EcsTweens
                 bool hasEasing = chunk.Has(EasingType);
                 bool hasDirection = chunk.Has(DirectionType);
                 bool hasLoops = chunk.Has(LoopsType);
+                bool hasElementsBuffer = chunk.Has(ElementsBufferType);
 
                 for (int i = 0; i < states.Length; i++)
                 {
@@ -47,6 +50,7 @@ namespace EcsTweens
                     if (hasEasing) Cb.RemoveComponent<TweenEasing>(chunkIndex, e);
                     if (hasDirection) Cb.RemoveComponent<TweenYoyoDirection>(chunkIndex, e);
                     if (hasLoops) Cb.RemoveComponent<TweenLoops>(chunkIndex, e);
+                    if (hasElementsBuffer) Cb.RemoveComponent<TweenTargetElement>(chunkIndex, e);
                 }
             }
         }
@@ -82,7 +86,8 @@ namespace EcsTweens
                 EasingType = GetArchetypeChunkComponentType<TweenEasing>(true),
                 DirectionType = GetArchetypeChunkComponentType<TweenYoyoDirection>(true),
                 BoundsType = GetArchetypeChunkComponentType<TweenBounds>(true),
-                LoopsType = GetArchetypeChunkComponentType<TweenLoops>(true)
+                LoopsType = GetArchetypeChunkComponentType<TweenLoops>(true),
+                ElementsBufferType = GetArchetypeChunkBufferType<TweenTargetElement>(true)
             }.Schedule(_tweens, inputDeps);
             _endBarrier.AddJobHandleForProducer(checkTweenEndedJob);
             return checkTweenEndedJob;

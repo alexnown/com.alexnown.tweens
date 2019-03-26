@@ -7,6 +7,7 @@ namespace EcsTweens
     /// <summary>
     /// Checks tween completing state and if it true, removes tween components, specific for "move toward" tweens: speed, target, state.
     /// </summary>
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
     public class RemoveTweenComponentsOnEndedSystem : JobComponentSystem
     {
         struct RemoveTweenComponentsIfEnded : IJobChunk
@@ -25,6 +26,8 @@ namespace EcsTweens
             public ArchetypeChunkComponentType<TweenSpeed> SpeedType;
             [ReadOnly]
             public ArchetypeChunkComponentType<TweenFloat3Speed> Speed3Type;
+            [ReadOnly]
+            public ArchetypeChunkBufferType<TweenTargetElement> ElementsBufferType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
             {
@@ -34,6 +37,7 @@ namespace EcsTweens
                 bool hasTarget3 = chunk.Has(Target3Type);
                 bool hasSpeed = chunk.Has(SpeedType);
                 bool hasSpeed3 = chunk.Has(Speed3Type);
+                bool hasElementsBuffer = chunk.Has(ElementsBufferType);
 
                 for (int i = 0; i < states.Length; i++)
                 {
@@ -44,6 +48,7 @@ namespace EcsTweens
                     if (hasTarget3) Cb.RemoveComponent<TweenFloat3Target>(chunkIndex, e);
                     if (hasSpeed) Cb.RemoveComponent<TweenSpeed>(chunkIndex, e);
                     if (hasSpeed3) Cb.RemoveComponent<TweenFloat3Speed>(chunkIndex, e);
+                    if (hasElementsBuffer) Cb.RemoveComponent<TweenTargetElement>(chunkIndex, e);
                 }
             }
         }
@@ -75,7 +80,8 @@ namespace EcsTweens
                 ComplitedType = GetArchetypeChunkComponentType<TweenComplitedState>(true),
                 TargetType = GetArchetypeChunkComponentType<TweenFloatTarget>(true),
                 Speed3Type = GetArchetypeChunkComponentType<TweenFloat3Speed>(true),
-                Target3Type = GetArchetypeChunkComponentType<TweenFloat3Target>(true)
+                Target3Type = GetArchetypeChunkComponentType<TweenFloat3Target>(true),
+                ElementsBufferType = GetArchetypeChunkBufferType<TweenTargetElement>(true)
             }.Schedule(_tweens, inputDeps);
             _endBarrier.AddJobHandleForProducer(checkTweenEndedJob);
             return checkTweenEndedJob;

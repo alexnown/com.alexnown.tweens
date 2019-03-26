@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace EcsTweens
 {
+    [UpdateInGroup(typeof(TweenSystemGroup))]
     public class UpdateEndlessFloat3TweenSystem : JobComponentSystem
     {
         [BurstCompile]

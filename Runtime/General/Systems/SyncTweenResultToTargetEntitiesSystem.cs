@@ -48,8 +48,6 @@ namespace EcsTweens
         
         private TweensSyncValueBarrier _barrier;
         private ComponentGroup _syncFloatContainers;
-        [Inject]
-        private ComponentDataFromEntity<FloatContainer> _targetEntities;
 
         protected override void OnCreateManager()
         {
@@ -63,7 +61,7 @@ namespace EcsTweens
             var job = new SyncFloatValueToTargets
             {
                 Cb = _barrier.CreateCommandBuffer().ToConcurrent(),
-                TargetEntities = _targetEntities,
+                TargetEntities = GetComponentDataFromEntity<FloatContainer>(),
                 ValueType = GetArchetypeChunkComponentType<FloatContainer>(),
                 TargetsBufferType = GetArchetypeChunkBufferType<TweenTargetElement>()
             }.Schedule(_syncFloatContainers, inputDeps);

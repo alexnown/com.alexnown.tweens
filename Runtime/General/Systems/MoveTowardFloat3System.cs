@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace EcsTweens
 {
+    [UpdateInGroup(typeof(TweenSystemGroup))]
     public class MoveTowardFloat3System : JobComponentSystem
     {
         [BurstCompile]
