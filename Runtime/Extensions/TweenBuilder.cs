@@ -53,7 +53,6 @@ namespace EcsTweens
         #endregion
 
         #region Loop tweens
-
         public static void InititalizeLoopTween(EntityManager em, Entity e, float loopTime,
             LoopTweenParams tweenParams = default(LoopTweenParams))
         {
@@ -64,18 +63,11 @@ namespace EcsTweens
             if (tweenParams.DestroyOnComplete) em.AddComponentData(e, default(DestroyOnComplite));
             if (tweenParams.Easing != EasingType.Linear) em.AddComponentData(e, new TweenEasing(tweenParams.Easing));
         }
-
-        public static void InititalizeYoyoLoopTween(EntityManager em, Entity e, float loopTime,
-            bool yoyoForwardDirection = true, LoopTweenParams tweenParams = default(LoopTweenParams))
-        {
-            InititalizeLoopTween(em, e, loopTime, tweenParams);
-            em.AddComponentData(e, new TweenYoyoDirection { IsBack = !yoyoForwardDirection });
-        }
-
+        
         public static void InititalizeLoopTween(EntityCommandBuffer cb, Entity e, float loopTime,
             LoopTweenParams tweenParams = default(LoopTweenParams))
         {
-            cb.AddComponent(e, default(TweenProgress));
+            cb.AddComponent(e, default(TweenComplitedState));
             cb.AddComponent(e, new TweenLoopTime { Value = loopTime });
             cb.AddComponent(e, new TweenProgress { Value = tweenParams.StartTweenProgress });
             if (tweenParams.LoopsRestriction > 0) cb.AddComponent(e, new TweenLoops { Value = (uint)tweenParams.LoopsRestriction });
@@ -83,12 +75,25 @@ namespace EcsTweens
             if (tweenParams.Easing != EasingType.Linear) cb.AddComponent(e, new TweenEasing(tweenParams.Easing));
         }
 
+        public static void InititalizeYoyoLoopTween(EntityManager em, Entity e, float loopTime,
+            bool yoyoIsForward = true, LoopTweenParams tweenParams = default(LoopTweenParams))
+        {
+            InititalizeLoopTween(em, e, loopTime, tweenParams);
+            em.AddComponentData(e, new TweenYoyoDirection { IsBack = !yoyoIsForward });
+        }
+
+        public static void InititalizeYoyoLoopTween(EntityManager em, Entity e, float loopTime, int loops = 2, bool yoyoIsForward = true)
+            => InititalizeYoyoLoopTween(em, e, loopTime, yoyoIsForward, new LoopTweenParams { LoopsRestriction = loops });
+
         public static void InititalizeYoyoLoopTween(EntityCommandBuffer cb, Entity e, float loopTime,
-            bool yoyoForwardDirection = true, LoopTweenParams tweenParams = default(LoopTweenParams))
+            bool yoyoIsForward = true, LoopTweenParams tweenParams = default(LoopTweenParams))
         {
             InititalizeLoopTween(cb, e, loopTime, tweenParams);
-            cb.AddComponent(e, new TweenYoyoDirection { IsBack = !yoyoForwardDirection });
+            cb.AddComponent(e, new TweenYoyoDirection { IsBack = !yoyoIsForward });
         }
+
+        public static void InititalizeYoyoLoopTween(EntityCommandBuffer cb, Entity e, float loopTime, int loops = 2, bool yoyoIsForward = true)
+            => InititalizeYoyoLoopTween(cb, e, loopTime, yoyoIsForward, new LoopTweenParams { LoopsRestriction = loops });
         #endregion
     }
 }
