@@ -49,7 +49,7 @@ namespace EcsTweens
         private TweensSyncValueBarrier _barrier;
         private EntityQuery _syncFloatContainers;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _barrier = World.GetOrCreateSystem<TweensSyncValueBarrier>();
             _syncFloatContainers = GetEntityQuery(ComponentType.ReadOnly<FloatContainer>(),

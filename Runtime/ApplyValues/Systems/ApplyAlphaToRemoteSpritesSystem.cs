@@ -9,7 +9,7 @@ namespace EcsTweens
     {
         private EntityQuery _remoteRenderers;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _remoteRenderers = GetEntityQuery(ComponentType.Exclude<SpriteRenderer>(),
                 ComponentType.ReadOnly<FloatContainerAsAlpha>(), ComponentType.ReadOnly<FloatContainer>());

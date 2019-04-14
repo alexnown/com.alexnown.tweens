@@ -9,7 +9,7 @@ namespace EcsTweens
     {
         private EntityQuery _renderersWithAlpha;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _renderersWithAlpha = GetEntityQuery(ComponentType.ReadOnly<SpriteRenderer>(),
                 ComponentType.ReadOnly<FloatContainerAsAlpha>(), ComponentType.ReadOnly<FloatContainer>());

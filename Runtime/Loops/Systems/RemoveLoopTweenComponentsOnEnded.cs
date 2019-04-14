@@ -58,7 +58,7 @@ namespace EcsTweens
         private EndSimulationEntityCommandBufferSystem _endBarrier;
         private EntityQuery _tweens;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _endBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
             _tweens = GetEntityQuery(new EntityQueryDesc

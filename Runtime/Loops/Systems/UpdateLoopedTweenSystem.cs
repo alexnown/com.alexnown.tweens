@@ -71,7 +71,7 @@ namespace EcsTweens
 
         private EntityQuery _tweens;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _tweens = GetEntityQuery(
                 ComponentType.ReadWrite<TweenProgress>(),

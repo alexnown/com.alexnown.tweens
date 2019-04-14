@@ -21,7 +21,7 @@ namespace EcsTweens
         
         private EndSimulationEntityCommandBufferSystem _endBarrier;
 
-        protected override void OnCreateManager()
+        protected override void OnCreate()
         {
             _endBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
