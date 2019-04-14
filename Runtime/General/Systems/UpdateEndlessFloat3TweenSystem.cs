@@ -10,7 +10,7 @@ namespace EcsTweens
     public class UpdateEndlessFloat3TweenSystem : JobComponentSystem
     {
         [BurstCompile]
-        struct EndlessTweenJob : IJobProcessComponentData<Float3Container, TweenFloat3Speed>
+        struct EndlessTweenJob : IJobForEach<Float3Container, TweenFloat3Speed>
         {
             public float Dt;
             public void Execute(ref Float3Container value, [ReadOnly]ref TweenFloat3Speed speed)

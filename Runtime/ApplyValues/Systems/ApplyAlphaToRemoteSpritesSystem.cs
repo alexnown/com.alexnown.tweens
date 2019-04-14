@@ -7,11 +7,11 @@ namespace EcsTweens
     [UpdateInGroup(typeof(ApplyValuesSystemGroup))]
     public class ApplyAlphaToRemoteSpritesSystem : ComponentSystem
     {
-        private ComponentGroup _remoteRenderers;
+        private EntityQuery _remoteRenderers;
 
         protected override void OnCreateManager()
         {
-            _remoteRenderers = GetComponentGroup(ComponentType.Exclude<SpriteRenderer>(),
+            _remoteRenderers = GetEntityQuery(ComponentType.Exclude<SpriteRenderer>(),
                 ComponentType.ReadOnly<FloatContainerAsAlpha>(), ComponentType.ReadOnly<FloatContainer>());
             _remoteRenderers.SetFilterChanged(ComponentType.ReadOnly<FloatContainer>());
         }

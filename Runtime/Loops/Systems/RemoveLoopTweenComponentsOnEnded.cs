@@ -56,12 +56,12 @@ namespace EcsTweens
         }
 
         private EndSimulationEntityCommandBufferSystem _endBarrier;
-        private ComponentGroup _tweens;
+        private EntityQuery _tweens;
 
         protected override void OnCreateManager()
         {
-            _endBarrier = World.GetOrCreateManager<EndSimulationEntityCommandBufferSystem>();
-            _tweens = GetComponentGroup(new EntityArchetypeQuery
+            _endBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _tweens = GetEntityQuery(new EntityQueryDesc
             {
                 All = new[] {
                     ComponentType.ReadOnly<TweenComplitedState>(),

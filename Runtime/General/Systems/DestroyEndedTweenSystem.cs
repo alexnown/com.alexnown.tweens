@@ -10,7 +10,7 @@ namespace EcsTweens
     {
         [RequireComponentTag(typeof(DestroyOnComplite))]
         [BurstCompile]
-        struct DestroyComplitedTweenEntities : IJobProcessComponentDataWithEntity<TweenComplitedState>
+        struct DestroyComplitedTweenEntities : IJobForEachWithEntity<TweenComplitedState>
         {
             public EntityCommandBuffer Cb;
             public void Execute(Entity entity, int index, [ReadOnly] ref TweenComplitedState state)
@@ -23,7 +23,7 @@ namespace EcsTweens
 
         protected override void OnCreateManager()
         {
-            _endBarrier = World.GetOrCreateManager<EndSimulationEntityCommandBufferSystem>();
+            _endBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)

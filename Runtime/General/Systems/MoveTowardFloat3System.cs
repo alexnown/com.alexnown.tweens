@@ -11,7 +11,7 @@ namespace EcsTweens
     public class MoveTowardFloat3System : JobComponentSystem
     {
         [BurstCompile]
-        struct MoveTowardFloat3Job : IJobProcessComponentData<Float3Container, TweenComplitedState, TweenSpeed, TweenFloat3Target>
+        struct MoveTowardFloat3Job : IJobForEach<Float3Container, TweenComplitedState, TweenSpeed, TweenFloat3Target>
         {
             public float Dt;
 

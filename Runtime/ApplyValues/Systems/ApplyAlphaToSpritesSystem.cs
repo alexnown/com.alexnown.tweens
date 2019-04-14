@@ -7,11 +7,11 @@ namespace EcsTweens
     [UpdateInGroup(typeof(ApplyValuesSystemGroup))]
     public class ApplyAlphaToSpritesSystem : ComponentSystem
     {
-        private ComponentGroup _renderersWithAlpha;
+        private EntityQuery _renderersWithAlpha;
 
         protected override void OnCreateManager()
         {
-            _renderersWithAlpha = GetComponentGroup(ComponentType.ReadOnly<SpriteRenderer>(),
+            _renderersWithAlpha = GetEntityQuery(ComponentType.ReadOnly<SpriteRenderer>(),
                 ComponentType.ReadOnly<FloatContainerAsAlpha>(), ComponentType.ReadOnly<FloatContainer>());
             _renderersWithAlpha.SetFilterChanged(ComponentType.ReadOnly<FloatContainer>());
         }

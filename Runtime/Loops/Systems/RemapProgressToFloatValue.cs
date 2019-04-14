@@ -71,10 +71,10 @@ namespace EcsTweens
             }
         }
 
-        private ComponentGroup _tweens;
+        private EntityQuery _tweens;
         protected override void OnCreateManager()
         {
-            _tweens = GetComponentGroup(ComponentType.ReadOnly<TweenProgress>(),
+            _tweens = GetEntityQuery(ComponentType.ReadOnly<TweenProgress>(),
                 ComponentType.ReadOnly<FloatContainer>());
         }
 
