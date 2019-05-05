@@ -2,6 +2,7 @@
 
 namespace EcsTweens
 {
-    [UpdateAfter(typeof(TweenSystemGroup))]
-    public class TweensSyncValueBarrier : EntityCommandBufferSystem {}
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    [UpdateBefore(typeof(ApplyValuesSystemGroup))]
+    public class TweensSyncValueBarrier : EntityCommandBufferSystem { }
 }

@@ -8,7 +8,6 @@ namespace EcsTweens
     /// Share FloatValue from entity to all existing in TweenTargetElement buffer entities, which have FloatValue component.
     /// </summary>
     [UpdateInGroup(typeof(TweenSystemGroup))]
-    [UpdateAfter(typeof(RemapProgressToFloatSystem))]
     public class SyncTweenResultToTargetEntitiesSystem : JobComponentSystem
     {
         struct SyncFloatValueToTargets : IJobChunk
@@ -45,7 +44,7 @@ namespace EcsTweens
                 }
             }
         }
-        
+
         private TweensSyncValueBarrier _barrier;
         private EntityQuery _syncFloatContainers;
 
@@ -61,8 +60,8 @@ namespace EcsTweens
             var job = new SyncFloatValueToTargets
             {
                 Cb = _barrier.CreateCommandBuffer().ToConcurrent(),
-                TargetEntities = GetComponentDataFromEntity<FloatContainer>(),
-                ValueType = GetArchetypeChunkComponentType<FloatContainer>(),
+                TargetEntities = GetComponentDataFromEntity<FloatContainer>(true),
+                ValueType = GetArchetypeChunkComponentType<FloatContainer>(true),
                 TargetsBufferType = GetArchetypeChunkBufferType<TweenTargetElement>()
             }.Schedule(_syncFloatContainers, inputDeps);
             _barrier.AddJobHandleForProducer(job);

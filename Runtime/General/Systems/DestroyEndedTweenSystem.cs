@@ -6,6 +6,7 @@ using Unity.Jobs;
 namespace EcsTweens
 {
     [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    [UpdateAfter(typeof(ApplyValuesSystemGroup))]
     public class DestroyEndedTweenSystem : JobComponentSystem
     {
         [RequireComponentTag(typeof(DestroyOnComplite))]
