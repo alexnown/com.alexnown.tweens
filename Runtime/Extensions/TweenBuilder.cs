@@ -182,6 +182,7 @@ namespace EcsTweens
         public static void InititalizeLoopTween(EntityManager em, Entity e, float loopTime, LoopTweenParams tweenParams)
         {
             em.AddComponentData(e, default(IsTweening));
+            em.AddComponentData(e, default(ComplitedLoops));
             em.AddComponentData(e, new TweenProgressSpeed { Value = 1 / loopTime });
             em.AddComponentData(e, new TweenProgress { Value = tweenParams.StartTweenProgress });
             var remapParams = new RemapLoopProgressToFloat
@@ -212,6 +213,7 @@ namespace EcsTweens
         public static void InititalizeLoopTween(EntityCommandBuffer cb, Entity e, float loopTime, LoopTweenParams tweenParams)
         {
             cb.AddComponent(e, default(IsTweening));
+            cb.AddComponent(e, default(ComplitedLoops));
             cb.AddComponent(e, new TweenProgressSpeed { Value = 1 / loopTime });
             cb.AddComponent(e, new TweenProgress { Value = tweenParams.StartTweenProgress });
             var remapParams = new RemapLoopProgressToFloat
