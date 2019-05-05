@@ -5,10 +5,9 @@ using Unity.Jobs;
 
 namespace EcsTweens
 {
-    [BurstCompile]
     [UpdateInGroup(typeof(TweenSystemGroup))]
-    [UpdateAfter(typeof(UpdateLoopedTweenSystem))]
-    public class RemapProgressToFloatValue : JobComponentSystem
+    [UpdateAfter(typeof(UpdateLoopProgressSystem))]
+    public class RemapProgressToFloatSystem : JobComponentSystem
     {
         [BurstCompile]
         struct ProgressToFloatValueJob : IJobChunk
@@ -17,36 +16,31 @@ namespace EcsTweens
             [ReadOnly]
             public ArchetypeChunkComponentType<TweenProgress> ProgressType;
             [ReadOnly]
-            public ArchetypeChunkComponentType<TweenEasing> EasingType;
+            public ArchetypeChunkComponentType<RemapLoopProgressToFloat> RepamDataType;
             [ReadOnly]
-            public ArchetypeChunkComponentType<TweenYoyoDirection> YoyoDirectionType;
-            [ReadOnly]
-            public ArchetypeChunkComponentType<TweenBounds> BoundsType;
+            public ArchetypeChunkComponentType<ComplitedLoops> LoopsType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
             {
                 var values = chunk.GetNativeArray(ValueType);
                 var tweenProgresses = chunk.GetNativeArray(ProgressType);
-                var easings = chunk.GetNativeArray(EasingType);
-                var yoyoDirections = chunk.GetNativeArray(YoyoDirectionType);
-                var bounds = chunk.GetNativeArray(BoundsType);
+                var remapDataArray = chunk.GetNativeArray(RepamDataType);
+                var loopsCounts = chunk.GetNativeArray(LoopsType);
 
                 for (int i = 0; i < tweenProgresses.Length; i++)
                 {
                     float progress = tweenProgresses[i].Value;
-                    if (yoyoDirections.IsCreated)
+                    var remapData = remapDataArray[i];
+                    if (remapData.IsYoyoTweening)
                     {
-                        if (yoyoDirections[i].IsBack) progress = 1 - progress;
+                        if (loopsCounts[i].Value % 2 == 1) progress = 1 - progress;
                     }
-                    if (easings.IsCreated)
+                    if (remapData.Easing != 0)
                     {
-                        progress = EasingValue(progress, easings[i].Type);
+                        progress = EasingValue(progress, remapData.Easing);
                     }
-                    if (bounds.IsCreated)
-                    {
-                        var boundsData = bounds[i];
-                        progress = boundsData.Min + progress * (boundsData.Max - boundsData.Min);
-                    }
+                    var borders = remapData.ValueBorders;
+                    progress = borders.x + progress * (borders.y - borders.x);
                     values[i] = new FloatContainer { Value = progress };
                 }
             }
@@ -56,11 +50,11 @@ namespace EcsTweens
             {
                 switch (type)
                 {
-                    case (byte)EcsTweens.EasingType.OutQuad:
+                    case (byte)EasingType.OutQuad:
                         return -progress * (progress - 2);
-                    case (byte)EcsTweens.EasingType.InQuad:
+                    case (byte)EasingType.InQuad:
                         return progress * progress;
-                    case (byte)EcsTweens.EasingType.InOutQuad:
+                    case (byte)EasingType.InOutQuad:
                         float ratio = progress * 2;
                         if (ratio < 1) return 0.5f * ratio * ratio;
                         ratio--;
@@ -83,10 +77,9 @@ namespace EcsTweens
             return new ProgressToFloatValueJob
             {
                 ValueType = GetArchetypeChunkComponentType<FloatContainer>(),
-                EasingType = GetArchetypeChunkComponentType<TweenEasing>(true),
-                BoundsType = GetArchetypeChunkComponentType<TweenBounds>(true),
                 ProgressType = GetArchetypeChunkComponentType<TweenProgress>(true),
-                YoyoDirectionType = GetArchetypeChunkComponentType<TweenYoyoDirection>(true)
+                LoopsType = GetArchetypeChunkComponentType<ComplitedLoops>(true),
+                RepamDataType = GetArchetypeChunkComponentType<RemapLoopProgressToFloat>(true)
             }.Schedule(_tweens, inputDeps);
         }
     }

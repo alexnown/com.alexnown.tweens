@@ -10,11 +10,11 @@ namespace EcsTweens
     public class MoveTowardFloatSystem : JobComponentSystem
     {
         [BurstCompile]
-        struct MoveTowardFloatJob : IJobForEach<FloatContainer, TweenComplitedState, TweenSpeed, TweenFloatTarget>
+        struct MoveTowardFloatJob : IJobForEach<FloatContainer, TweenCompliteState, TweenSpeed, TweenFloatTarget>
         {
             public float Dt;
 
-            public void Execute(ref FloatContainer current, ref TweenComplitedState complited,
+            public void Execute(ref FloatContainer current, ref TweenCompliteState endState,
                 [ReadOnly]ref TweenSpeed speed, [ReadOnly] ref TweenFloatTarget targetValue)
             {
                 var delta = speed.Value * Dt;
@@ -26,7 +26,7 @@ namespace EcsTweens
                     if (currValue > target)
                     {
                         currValue = target;
-                        complited.IsComplited = true;
+                        endState.IsComplited = true;
                     }
                 }
                 else if (currValue > target)
@@ -35,7 +35,7 @@ namespace EcsTweens
                     if (currValue < target)
                     {
                         currValue = target;
-                        complited.IsComplited = true;
+                        endState.IsComplited = true;
                     }
                 }
                 current.Value = currValue;

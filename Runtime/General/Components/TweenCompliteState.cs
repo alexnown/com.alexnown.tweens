@@ -2,7 +2,7 @@
 
 namespace EcsTweens
 {
-    public struct TweenComplitedState : IComponentData
+    public struct TweenCompliteState : IComponentData
     {
         public bool IsComplited;
     }

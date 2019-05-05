@@ -17,7 +17,7 @@ namespace EcsTweens
             [ReadOnly]
             public ArchetypeChunkEntityType EntitieType;
             [ReadOnly]
-            public ArchetypeChunkComponentType<TweenComplitedState> ComplitedType;
+            public ArchetypeChunkComponentType<TweenCompliteState> ComplitedType;
             [ReadOnly]
             public ArchetypeChunkComponentType<TweenFloatTarget> TargetType;
             [ReadOnly]
@@ -43,7 +43,8 @@ namespace EcsTweens
                 {
                     if (!states[i].IsComplited) continue;
                     var e = entities[i];
-                    Cb.RemoveComponent<TweenComplitedState>(chunkIndex, e);
+                    Cb.RemoveComponent<TweenCompliteState>(chunkIndex, e);
+                    Cb.RemoveComponent<IsTweening>(chunkIndex, e);
                     if (hasTarget) Cb.RemoveComponent<TweenFloatTarget>(chunkIndex, e);
                     if (hasTarget3) Cb.RemoveComponent<TweenFloat3Target>(chunkIndex, e);
                     if (hasSpeed) Cb.RemoveComponent<TweenSpeed>(chunkIndex, e);
@@ -61,7 +62,7 @@ namespace EcsTweens
             _endBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
             _tweens = GetEntityQuery(new EntityQueryDesc
             {
-                All = new[] { ComponentType.ReadOnly<TweenComplitedState>() },
+                All = new[] { ComponentType.ReadOnly<TweenCompliteState>() },
                 Any = new[]{
                     ComponentType.ReadOnly<TweenSpeed>() ,
                     ComponentType.ReadOnly<TweenFloat3Speed>()
@@ -77,7 +78,7 @@ namespace EcsTweens
                 Cb = _endBarrier.CreateCommandBuffer().ToConcurrent(),
                 EntitieType = GetArchetypeChunkEntityType(),
                 SpeedType = GetArchetypeChunkComponentType<TweenSpeed>(true),
-                ComplitedType = GetArchetypeChunkComponentType<TweenComplitedState>(true),
+                ComplitedType = GetArchetypeChunkComponentType<TweenCompliteState>(true),
                 TargetType = GetArchetypeChunkComponentType<TweenFloatTarget>(true),
                 Speed3Type = GetArchetypeChunkComponentType<TweenFloat3Speed>(true),
                 Target3Type = GetArchetypeChunkComponentType<TweenFloat3Target>(true),

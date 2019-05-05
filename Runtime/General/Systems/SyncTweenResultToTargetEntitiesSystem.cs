@@ -8,7 +8,7 @@ namespace EcsTweens
     /// Share FloatValue from entity to all existing in TweenTargetElement buffer entities, which have FloatValue component.
     /// </summary>
     [UpdateInGroup(typeof(TweenSystemGroup))]
-    [UpdateAfter(typeof(RemapProgressToFloatValue))]
+    [UpdateAfter(typeof(RemapProgressToFloatSystem))]
     public class SyncTweenResultToTargetEntitiesSystem : JobComponentSystem
     {
         struct SyncFloatValueToTargets : IJobChunk

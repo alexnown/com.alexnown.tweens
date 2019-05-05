@@ -11,11 +11,11 @@ namespace EcsTweens
     public class MoveTowardFloat3System : JobComponentSystem
     {
         [BurstCompile]
-        struct MoveTowardFloat3Job : IJobForEach<Float3Container, TweenComplitedState, TweenSpeed, TweenFloat3Target>
+        struct MoveTowardFloat3Job : IJobForEach<Float3Container, TweenCompliteState, TweenSpeed, TweenFloat3Target>
         {
             public float Dt;
 
-            public void Execute(ref Float3Container current, ref TweenComplitedState state,
+            public void Execute(ref Float3Container current, ref TweenCompliteState state,
                 [ReadOnly]ref TweenSpeed speed, [ReadOnly]ref TweenFloat3Target target)
             {
                 var offset = target.Value - current.Value;

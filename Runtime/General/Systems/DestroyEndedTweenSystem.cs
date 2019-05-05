@@ -10,10 +10,10 @@ namespace EcsTweens
     {
         [RequireComponentTag(typeof(DestroyOnComplite))]
         [BurstCompile]
-        struct DestroyComplitedTweenEntities : IJobForEachWithEntity<TweenComplitedState>
+        struct DestroyComplitedTweenEntities : IJobForEachWithEntity<TweenCompliteState>
         {
             public EntityCommandBuffer Cb;
-            public void Execute(Entity entity, int index, [ReadOnly] ref TweenComplitedState state)
+            public void Execute(Entity entity, int index, [ReadOnly] ref TweenCompliteState state)
             {
                 if (state.IsComplited) Cb.DestroyEntity(entity);
             }

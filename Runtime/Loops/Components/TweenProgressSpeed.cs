@@ -2,7 +2,7 @@
 
 namespace EcsTweens
 {
-    public struct TweenLoopTime : IComponentData
+    public struct TweenProgressSpeed : IComponentData
     {
         public float Value;
     }
